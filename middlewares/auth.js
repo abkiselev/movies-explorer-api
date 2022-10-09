@@ -9,7 +9,9 @@ module.exports = async (req, res, next) => {
       throw new UnautorizedError('Необходима авторизация');
     }
 
-    const payload = jwt.verify(token, 'some-secret-key');
+    const { NODE_ENV, JWT_SECRET } = process.env;
+
+    const payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key');
     req.user = payload;
   } catch (err) {
     return next(new UnautorizedError('Необходима авторизация'));
