@@ -6,7 +6,7 @@ const { CREATED_CODE } = require('../helpers/codes');
 
 module.exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find({});
+    const movies = await Movie.find({ owner: req.user._id });
     return res.send({ data: movies });
   } catch (error) {
     return next(error);
@@ -29,11 +29,11 @@ module.exports.createMovie = async (req, res, next) => {
 
 module.exports.deleteMovie = async (req, res, next) => {
   try {
-    const movie = await Movie.findById(req.params.movieId);
+    const movie = await Movie.findById(req.params.id);
     const owner = req.user._id;
 
     if (!movie) {
-      throw new NotFoundError('Фильм с указанным _id не найдена');
+      throw new NotFoundError('Фильм с указанным _id не найден');
     }
 
     if (movie.owner.toString() !== owner) {

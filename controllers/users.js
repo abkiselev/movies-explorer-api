@@ -62,6 +62,9 @@ module.exports.updateUserInfo = async (req, res, next) => {
     if (error.name === 'ValidationError') {
       return next(new BadRequestError('Некорректные данные для обновления пользователя'));
     }
+    if (error.code === 11000) {
+      return next(new ConflictError('Такой e-mail уже существует'));
+    }
     return next(error);
   }
 };
@@ -88,7 +91,7 @@ module.exports.login = async (req, res, next) => {
     );
 
     res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true });
-    return res.send({ token });
+    return res.send({ message: 'Успешная авторизация' });
   } catch (error) {
     return next(error);
   }

@@ -6,14 +6,19 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
-const routes = require('./routes/index');
+const routes = require('./routes');
 const { handleErrors } = require('./middlewares/handleErrors');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { limiter } = require('./middlewares/rateLimiter');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
+mongoose.connect(
+  process.env.NODE_ENV === 'production' 
+  ? process.env.MONGO_URI 
+  : 'mongodb://localhost:27017/moviesdb', 
+  {
   useNewUrlParser: true,
 });
 
@@ -29,15 +34,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
+app.use(limiter)
+
 app.use(routes);
 
 app.use(errorLogger);
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  handleErrors(err, req, res, next);
-});
+app.use(handleErrors);
 
 app.listen(PORT, (err) => {
   if (err) {
